@@ -120,23 +120,36 @@ for i in range(num_epochs):
     X_train = np.array(X_train)
     z_train = np.array(z_train)
     print("Reshaping Arrays... Done")
-
-    inputs = Input(shape=(256, 256))
+        
+    inputs = Input(shape = (256,256))
     inputs_t = tf.transpose(inputs, perm=[0, 2, 1])
+    
+    #Layer 1
+    output_1 = (Bidirectional(GRU(256, return_sequences = True)))(inputs_t)
+    input_2 = tf.keras.layers.Subtract()([inputs_t, output_1])
+    #Layer 2
+    output_2 = (Bidirectional(GRU(256, return_sequences = True)))(input_2)
+    input_3 = keras.layers.Subtract()([input_2,output_2])
+    #layer 3
+    output_3 = (Bidirectional(GRU(256, return_sequences = True)))(input_3)
+    input_4 = keras.layers.Subtract()([input_3,output_3])
+    #Layer 4
+    output_4 = (Bidirectional(GRU(256, return_sequences = True)))(input_4)
+    input_5 = keras.layers.Subtract()([input_4,output_4])    
+    #Layer 5
+    output_5 = (Bidirectional(GRU(256, return_sequences = True)))(input_5)
+    input_6 = keras.layers.Subtract()([input_5,output_5])
+        
+    output_6 = Bidirectional(GRU(256, return_sequences = True))(input_6)
+    output_GRU = TimeDistributed(Dense(256))(output_6)
+    
+    output_GRU = tf.transpose(output_GRU, perm=[0, 2, 1])    
+    real_output = tf.keras.layers.Subtract()([inputs, output_GRU])
 
-    for k in range(6 - 1):
-        inputs_t = (Bidirectional(GRU(256, return_sequences=True)))(inputs_t)
-
-    x = Bidirectional(GRU(256, return_sequences=True))(inputs_t)
-    output_GRU = TimeDistributed(Dense(256))(x)
-
-    output_GRU = tf.transpose(output_GRU, perm=[0, 2, 1])
-    real_output = keras.layers.Subtract()([inputs, output_GRU])
-
-    model = Model(inputs=inputs, outputs=real_output)
+    model = Model(inputs = inputs, outputs = real_output)
     model.summary()
     print("Model Compiled")
-
+    
     opt = tf.keras.optimizers.Adam(lr=1e-3, decay=1e-5)
 
     model.compile(
