@@ -1,7 +1,7 @@
 import os
 
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
-os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
 import cv2
 import os
@@ -27,14 +27,14 @@ def Degrade(image, noise_val):
     return image_G, G_noise
 
 
-DATADIR = "/home/zeshanfayyaz/LIA/Local_Images/Train/"
-TESTDIR = "/home/zeshanfayyaz/LIA/Local_Images/Test/"
+DATADIR = "/home/dplatnick/research/codetest2/cifar10traindir"
+TESTDIR = "/home/dplatnick/research/codetest2/cifar10testdir"
 
 print("Creating Training and Validation Data...")
 training_validation_data = []
-training_date = []
+training_data = []
 validation_data = []
-IMG_SIZE = 256
+IMG_SIZE = 32
 CATEGORIES = ["Clean", "Striped"]
 
 
@@ -54,15 +54,15 @@ create_training_data()
 print("Total Training + Validation Length: " + str(len(training_validation_data)))
 print("Using 85% Train and 15% Validation...")
 numtosplit = int(0.85 * (len(training_validation_data)))
-training_data = training_validation_data[0:numtosplit]
+training_data = training_validation_data[:numtosplit]
 validation_data = training_validation_data[numtosplit:]
 
-print("Training Data Length: " + str((len(training_data))))
+print("Training Data Length: " + str(len(training_data)))
 print("Validation Data Length: " + str(len(validation_data)))
 
 print("Creating Testing Data...")
 testing_data = []
-IMG_SIZE = 256
+
 
 def create_testing_data():
     for img in os.listdir(TESTDIR):
@@ -96,7 +96,8 @@ loss_val = []
 X_train = []
 z_train = []
 
-for i in range(num_epochs):
+#Num of epochs
+for i in range(3):
     X = []
     z = []
     X_validation = []
@@ -133,32 +134,32 @@ for i in range(num_epochs):
 
     print("Reshaping Arrays... Done")
 
-    inputs = Input(shape=(256, 256))
+    inputs = Input(shape=(32, 32))
     inputs_t = tf.transpose(inputs, perm=[0, 2, 1])
 
     # Layer 1
-    output_1 = (Bidirectional(GRU(256, return_sequences=True)))(inputs_t)
-    output_1 = TimeDistributed(Dense(256))(output_1)
+    output_1 = (Bidirectional(GRU(32, return_sequences=True), merge_mode="ave"))(inputs_t)
+    # output_1 = TimeDistributed(Dense(32))(output_1)
     input_2 = tf.keras.layers.Subtract()([inputs_t, output_1])
     # Layer 2
-    output_2 = (Bidirectional(GRU(256, return_sequences=True)))(input_2)
-    output_2 = TimeDistributed(Dense(256))(output_2)
+    output_2 = (Bidirectional(GRU(32, return_sequences=True), merge_mode="ave"))(input_2)
+    # output_2 = TimeDistributed(Dense(32))(output_2)
     input_3 = keras.layers.Subtract()([input_2, output_2])
     # layer 3
-    output_3 = (Bidirectional(GRU(256, return_sequences=True)))(input_3)
-    output_3 = TimeDistributed(Dense(256))(output_3)
+    output_3 = (Bidirectional(GRU(32, return_sequences=True), merge_mode="ave"))(input_3)
+    # output_3 = TimeDistributed(Dense(32))(output_3)
     input_4 = keras.layers.Subtract()([input_3, output_3])
     # Layer 4
-    output_4 = (Bidirectional(GRU(256, return_sequences=True)))(input_4)
-    output_4 = TimeDistributed(Dense(256))(output_4)
+    output_4 = (Bidirectional(GRU(32, return_sequences=True), merge_mode="ave"))(input_4)
+    # output_4 = TimeDistributed(Dense(32))(output_4)
     input_5 = keras.layers.Subtract()([input_4, output_4])
     # Layer 5
-    output_5 = (Bidirectional(GRU(256, return_sequences=True)))(input_5)
-    output_5 = TimeDistributed(Dense(256))(output_5)
+    output_5 = (Bidirectional(GRU(32, return_sequences=True), merge_mode="ave"))(input_5)
+    # output_5 = TimeDistributed(Dense(32))(output_5)
     input_6 = keras.layers.Subtract()([input_5, output_5])
 
-    output_6 = Bidirectional(GRU(256, return_sequences=True))(input_6)
-    output_GRU = TimeDistributed(Dense(256))(output_6)
+    output_6 = Bidirectional(GRU(32, return_sequences=True), merge_mode="ave")(input_6)
+    output_GRU = TimeDistributed(Dense(32))(output_6)
 
     output_GRU = tf.transpose(output_GRU, perm=[0, 2, 1])
     real_output = tf.keras.layers.Subtract()([inputs, output_GRU])
@@ -276,7 +277,7 @@ fig2.show()
 SSIM_train = structural_similarity(z[0], X[0])
 print("SSIM of Degraded Training Image in Reference to Ground Truth: " + str(SSIM_train))
 SSIM2_train = structural_similarity(z[0], output_train[0])
-print("SSIM of Predicted Clean Image in Reference to Ground Truth: " + str(SSIM2_train))
+print("SSIM of Predicted Clean Image in Referen ce to Ground Truth: " + str(SSIM2_train))
 print("Difference: " + str(SSIM2 - SSIM_train))
 
 PSNR_train = peak_signal_noise_ratio(z[0], X[0])
