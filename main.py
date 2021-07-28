@@ -149,9 +149,9 @@ for i in range(3):
     z_train = z[0:2]
     
     #We can reshape the arrays as well as convert them to numpy arrays 
-    X = np.array(X).reshape(-1, IMG_SIZE, IMG_SIZE)
-    X_validation = np.array(X_validation).reshape(-1, IMG_SIZE, IMG_SIZE)
-    X_train = np.array(X_train).reshape(-1, IMG_SIZE, IMG_SIZE)
+    #X = np.array(X).reshape(-1, IMG_SIZE, IMG_SIZE)
+    #X_validation = np.array(X_validation).reshape(-1, IMG_SIZE, IMG_SIZE)
+    #X_train = np.array(X_train).reshape(-1, IMG_SIZE, IMG_SIZE)
     X = np.array(X)
     z = np.array(z)
     X_validation = np.array(X_validation)
