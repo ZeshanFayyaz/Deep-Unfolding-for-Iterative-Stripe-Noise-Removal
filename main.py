@@ -158,10 +158,7 @@ def main():
             loss='mean_squared_error',
             metrics=['mse']
         )
-
         return model
-
-    if __name__ == "__main__":
 
         # We separate the datadir images into Training Data and Validation Data
         print("Creating Training and Validation Data...")
