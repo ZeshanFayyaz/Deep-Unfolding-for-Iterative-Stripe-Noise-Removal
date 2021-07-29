@@ -149,18 +149,13 @@ def main():
         # Return sequences is TRUE as we want an output for every timestep, and not a "many-to-one" output
         # Merge_mode is set to AVERAGE - in order to maintain dimensionality (256,256) [default is CONCAT]
         output_1 = (Bidirectional(GRU(image_size, return_sequences=True), merge_mode="ave"))(inputs_t) 
-        # The input of layer 2 is the output of layer 0 [transpose] SUBTRACT the output of layer 1
-        input_2 = tf.keras.layers.Subtract()([inputs_t, output_1])
-        output_2 = (Bidirectional(GRU(image_size, return_sequences=True), merge_mode="ave"))(input_2)
-        input_3 = keras.layers.Subtract()([input_2, output_2])
-        output_3 = (Bidirectional(GRU(image_size, return_sequences=True), merge_mode="ave"))(input_3)
-        input_4 = keras.layers.Subtract()([input_3, output_3])
-        output_4 = (Bidirectional(GRU(image_size, return_sequences=True), merge_mode="ave"))(input_4)
-        input_5 = keras.layers.Subtract()([input_4, output_4])
-        output_5 = (Bidirectional(GRU(image_size, return_sequences=True), merge_mode="ave"))(input_5)
-        input_6 = keras.layers.Subtract()([input_5, output_5])
-        output_6 = Bidirectional(GRU(image_size, return_sequences=True), merge_mode="ave")(input_6)
-        # Perform TimeDistributed Operation to final output of GRU
+        input_n = tf.keras.layers.Subtract()([inputs_t, output_1])
+        
+        for i in range (4):
+            output_n = Bidirectional(GRU(image_size, return_sequences=True), merge_mode="ave"))(input_n)
+            input_n = keras.layers.Subtract()([input_n, output_n])
+        
+        output_6 = Bidirectional(GRU(image_size, return_sequences=True), merge_mode="ave")(input_n)
         output_GRU = TimeDistributed(Dense(image_size))(output_6)
         # Transpose the image once again, giving us original dimensionality
         output_GRU = tf.transpose(output_GRU, perm=[0, 2, 1])
