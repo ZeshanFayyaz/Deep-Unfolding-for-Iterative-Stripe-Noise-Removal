@@ -160,164 +160,165 @@ def main():
         )
         return model
 
-        # We separate the datadir images into Training Data and Validation Data
-        print("Creating Training and Validation Data...")
-        training_validation_data = create_training_data()
-        training_data, validation_data = training_validation_split(training_validation_data)
 
-        # We can perform the same operation on Testing Data
-        print("Creating Testing Data...")
-        testing_data = create_testing_data()
-        testing_data = np.array(testing_data)
+    # We separate the datadir images into Training Data and Validation Data
+    print("Creating Training and Validation Data...")
+    training_validation_data = create_training_data()
+    training_data, validation_data = training_validation_split(training_validation_data)
 
-        # Degrade testing data
-        print("Degrading Testing Data...")
-        clean_testing_data, model_testing_data = degrade_test_data()
+    # We can perform the same operation on Testing Data
+    print("Creating Testing Data...")
+    testing_data = create_testing_data()
+    testing_data = np.array(testing_data)
 
-        # Set the number of epochs to 100
-        # In this case, X is our input and z is our target - as opposed to the conventional X and y
-        loss_train = []
-        loss_val = []
-        X_debug = []
-        z_debug = []
+    # Degrade testing data
+    print("Degrading Testing Data...")
+    clean_testing_data, model_testing_data = degrade_test_data()
 
-        model = train_model(image_size)
-        for i in range(num_epochs):
-            X = []
-            z = []
-            X_validation = []
-            z_validation = []
+    # Set the number of epochs to 100
+    # In this case, X is our input and z is our target - as opposed to the conventional X and y
+    loss_train = []
+    loss_val = []
+    X_debug = []
+    z_debug = []
 
-            for images, label in training_data:
-                noisy_image, _ = degrade(images, 25)
-                # We append the training images to X and z
-                X.append(noisy_image / 255.0)  # X is the Dirty Training Images
-                z.append(images / 255.0)  # z is the Clean Training Images [Target]
+    model = train_model(image_size)
+    for i in range(num_epochs):
+        X = []
+        z = []
+        X_validation = []
+        z_validation = []
 
-            for images, label in validation_data:
-                noisy_image, _ = degrade(images, 25)
-                X_validation.append(noisy_image / 255.0)  # X_validation is the Dirty Validation Images
-                z_validation.append(images / 255.0)  # z_validation is the Clean Validation Images [Target]
+        for images, label in training_data:
+            noisy_image, _ = degrade(images, 25)
+            # We append the training images to X and z
+            X.append(noisy_image / 255.0)  # X is the Dirty Training Images
+            z.append(images / 255.0)  # z is the Clean Training Images [Target]
 
-            print("Adding Noise Instances... Done")
+        for images, label in validation_data:
+            noisy_image, _ = degrade(images, 25)
+            X_validation.append(noisy_image / 255.0)  # X_validation is the Dirty Validation Images
+            z_validation.append(images / 255.0)  # z_validation is the Clean Validation Images [Target]
 
-            print("Reshaping Arrays..")
-            X_debug = X[0:2]
-            z_debug = z[0:2]
-            X = np.array(X)
-            z = np.array(z)
-            X_validation = np.array(X_validation)
-            z_validation = np.array(z_validation)
-            X_debug = np.array(X_debug)
-            z_debug = np.array(z_debug)
+        print("Adding Noise Instances... Done")
 
-            print("Reshaping Arrays... Done")
+        print("Reshaping Arrays..")
+        X_debug = X[0:2]
+        z_debug = z[0:2]
+        X = np.array(X)
+        z = np.array(z)
+        X_validation = np.array(X_validation)
+        z_validation = np.array(z_validation)
+        X_debug = np.array(X_debug)
+        z_debug = np.array(z_debug)
 
-            # Calculate loss
-            loss_metrics = model.fit(X, z,
-                                     batch_size=100,
-                                     epochs=1,
-                                     validation_data=(X_validation, z_validation)
-                                     )
-            # Append metrics to their respective lists
-            loss_train.append(loss_metrics.history['loss'])
-            loss_val.append(loss_metrics.history['val_loss'])
-            print("Done Epoch: " + str(i + 1))
+        print("Reshaping Arrays... Done")
 
-        # Once training is complete, plot the Training Loss
-        plt.plot(loss_train)
-        plt.title("Training Loss")
-        plt.grid()
-        plt.show()
+        # Calculate loss
+        loss_metrics = model.fit(X, z,
+                                 batch_size=100,
+                                 epochs=1,
+                                 validation_data=(X_validation, z_validation)
+                                 )
+        # Append metrics to their respective lists
+        loss_train.append(loss_metrics.history['loss'])
+        loss_val.append(loss_metrics.history['val_loss'])
+        print("Done Epoch: " + str(i + 1))
 
-        # Once training is complete, plot the Validation Loss
-        plt.plot(loss_val)
-        plt.title("Validation Loss")
-        plt.grid()
-        plt.show()
+    # Once training is complete, plot the Training Loss
+    plt.plot(loss_train)
+    plt.title("Training Loss")
+    plt.grid()
+    plt.show()
 
-        # Once training is complete, plot the Training and Validation Loss on the same axis
-        # Define range of x axis
-        epoch_list = []
-        for i in range(1, num_epochs + 1):
-            epoch_list.append(i)
+    # Once training is complete, plot the Validation Loss
+    plt.plot(loss_val)
+    plt.title("Validation Loss")
+    plt.grid()
+    plt.show()
 
-        plt.plot(epoch_list, loss_val, label='val loss')
-        plt.plot(epoch_list, loss_train, label='train loss')
-        plt.title("Training Loss and Validation Loss")
-        plt.legend(loc='center right')
-        plt.grid()
-        plt.show()
+    # Once training is complete, plot the Training and Validation Loss on the same axis
+    # Define range of x axis
+    epoch_list = []
+    for i in range(1, num_epochs + 1):
+        epoch_list.append(i)
 
-        # Test out network using the CLEAN TEST Images, as we defined at the top of the code
-        output_test = model.predict(model_testing_data)
+    plt.plot(epoch_list, loss_val, label='val loss')
+    plt.plot(epoch_list, loss_train, label='train loss')
+    plt.title("Training Loss and Validation Loss")
+    plt.legend(loc='center right')
+    plt.grid()
+    plt.show()
 
-        psnr_degraded_lst = []
-        psnr_predicted_lst = []
-        psnr_difference_lst = []
-        ssim_degraded_lst = []
-        ssim_predicted_lst = []
-        ssim_difference_lst = []
+    # Test out network using the CLEAN TEST Images, as we defined at the top of the code
+    output_test = model.predict(model_testing_data)
 
-        for i in range(2000):
-            psnr_degraded, psnr_predicted, psnr_difference, ssim_degraded, ssim_predicted, ssim_difference = \
-                psnr_ssim_metrics(clean_testing_data[i], output_test[i], model_testing_data[i])
-            psnr_degraded_lst.append(psnr_degraded)
-            psnr_predicted_lst.append(psnr_predicted)
-            psnr_difference_lst.append(psnr_difference)
-            ssim_degraded_lst.append(ssim_degraded)
-            ssim_predicted_lst.append(ssim_predicted)
-            ssim_difference_lst.append(ssim_difference)
+    psnr_degraded_lst = []
+    psnr_predicted_lst = []
+    psnr_difference_lst = []
+    ssim_degraded_lst = []
+    ssim_predicted_lst = []
+    ssim_difference_lst = []
 
-        psnr_degraded_average = average(psnr_degraded_lst)
-        print("The average PSNR of all Test Degraded Images wrt Ground Truth: " + str(psnr_degraded_average))
-        psnr_predicted_average = average(psnr_predicted_lst)
-        print("The average PSNR of all Test Predicted Images wrt Ground Truth: " + str(psnr_predicted_average))
-        psnr_difference_average = average(psnr_difference_lst)
-        print("The average PSNR Difference: " + str(psnr_difference_average))
+    for i in range(2000):
+        psnr_degraded, psnr_predicted, psnr_difference, ssim_degraded, ssim_predicted, ssim_difference = \
+            psnr_ssim_metrics(clean_testing_data[i], output_test[i], model_testing_data[i])
+        psnr_degraded_lst.append(psnr_degraded)
+        psnr_predicted_lst.append(psnr_predicted)
+        psnr_difference_lst.append(psnr_difference)
+        ssim_degraded_lst.append(ssim_degraded)
+        ssim_predicted_lst.append(ssim_predicted)
+        ssim_difference_lst.append(ssim_difference)
 
-        ssim_degraded_average = average(ssim_degraded_lst)
-        print("The average SSIM of all Test Degraded Images wrt Ground Truth: " + str(ssim_degraded_average))
-        ssim_predicted_average = average(ssim_predicted_lst)
-        print("The average SSIM of all Test Predicted Images wrt Ground Truth: " + str(ssim_predicted_average))
-        ssim_difference_average = average(ssim_difference_lst)
-        print("The average SSIM Difference: " + str(ssim_difference_average))
+    psnr_degraded_average = average(psnr_degraded_lst)
+    print("The average PSNR of all Test Degraded Images wrt Ground Truth: " + str(psnr_degraded_average))
+    psnr_predicted_average = average(psnr_predicted_lst)
+    print("The average PSNR of all Test Predicted Images wrt Ground Truth: " + str(psnr_predicted_average))
+    psnr_difference_average = average(psnr_difference_lst)
+    print("The average PSNR Difference: " + str(psnr_difference_average))
 
-        # We print an example image of output_test so we can visually inspect any loss of stripe noise
-        print("Test Image Sample...")
-        test_image = create_subplots(model_testing_data[0], clean_testing_data[0], output_test[0], "test")
-        test_image.show()
+    ssim_degraded_average = average(ssim_degraded_lst)
+    print("The average SSIM of all Test Degraded Images wrt Ground Truth: " + str(ssim_degraded_average))
+    ssim_predicted_average = average(ssim_predicted_lst)
+    print("The average SSIM of all Test Predicted Images wrt Ground Truth: " + str(ssim_predicted_average))
+    ssim_difference_average = average(ssim_difference_lst)
+    print("The average SSIM Difference: " + str(ssim_difference_average))
 
-        for i in range(15):
-            test_image = create_subplots(model_testing_data[i], clean_testing_data[i], output_test[i], "test")
-            test_image.savefig(test_output + str(i) + ".png")
+    # We print an example image of output_test so we can visually inspect any loss of stripe noise
+    print("Test Image Sample...")
+    test_image = create_subplots(model_testing_data[0], clean_testing_data[0], output_test[0], "test")
+    test_image.show()
 
-            psnr_degraded, psnr_predicted, psnr_difference, ssim_degraded, ssim_predicted, ssim_difference = \
-                psnr_ssim_metrics(clean_testing_data[i], output_test[i], model_testing_data[i])
+    for i in range(15):
+        test_image = create_subplots(model_testing_data[i], clean_testing_data[i], output_test[i], "test")
+        test_image.savefig(test_output + str(i) + ".png")
 
-            file = open(test_output + str(i) + "_metrics.txt", "w")
-            file.write("PSNR of Degraded Image wrt Ground Truth: " + str(psnr_degraded)
-                       + " \nPSNR of Predicted Image wrt Ground Truth: " + str(psnr_predicted)
-                       + " \nPSNR Difference: " + str(psnr_difference)
-                       + " \nSSIM of  Degraded Image wrt Ground Truth: " + str(ssim_degraded)
-                       + " \nSSIM of Predicted Image wrt Ground Truth: " + str(ssim_predicted)
-                       + " \nSSIM Difference: " + str(ssim_difference))
-            file.close()
+        psnr_degraded, psnr_predicted, psnr_difference, ssim_degraded, ssim_predicted, ssim_difference = \
+            psnr_ssim_metrics(clean_testing_data[i], output_test[i], model_testing_data[i])
 
-        # Comparing PSNR and SSIM
-        # Compare PSNR where Img_True = Clean Testing Data and Img_Test = Degraded Original Testing Data
-        # Then, compare PSNR2 where Img_True = Clean Image and Img_Test = Output of Network
-        # PSNR2 > PSNR. This indicates that the PSNR of the PREDICTED image is greater than the PSNR of the ORIGINAL image
+        file = open(test_output + str(i) + "_metrics.txt", "w")
+        file.write("PSNR of Degraded Image wrt Ground Truth: " + str(psnr_degraded)
+                   + " \nPSNR of Predicted Image wrt Ground Truth: " + str(psnr_predicted)
+                   + " \nPSNR Difference: " + str(psnr_difference)
+                   + " \nSSIM of  Degraded Image wrt Ground Truth: " + str(ssim_degraded)
+                   + " \nSSIM of Predicted Image wrt Ground Truth: " + str(ssim_predicted)
+                   + " \nSSIM Difference: " + str(ssim_difference))
+        file.close()
 
-        # We can perform the same operation as above, but this time to one of the TRAINING images
-        # Recall, X_debug is a subset of training images with random noise (we defined this in the network itself)
-        output_train = model.predict(X_debug)
-        print("Train Image Sample...")
-        debug_image = create_subplots(X_debug[0], z_debug[0], output_train[0], "train")
-        debug_image.show()
-        _, _, psnr_difference, _, _, ssim_difference = psnr_ssim_metrics(z[0], output_train[0], X[0])
-        print("Sample Train Image: PSNR Difference: " + str(psnr_difference))
-        print("Sample Train Image: SSIM Difference: " + str(ssim_difference))
+    # Comparing PSNR and SSIM
+    # Compare PSNR where Img_True = Clean Testing Data and Img_Test = Degraded Original Testing Data
+    # Then, compare PSNR2 where Img_True = Clean Image and Img_Test = Output of Network
+    # PSNR2 > PSNR. This indicates that the PSNR of the PREDICTED image is greater than the PSNR of the ORIGINAL image
+
+    # We can perform the same operation as above, but this time to one of the TRAINING images
+    # Recall, X_debug is a subset of training images with random noise (we defined this in the network itself)
+    output_train = model.predict(X_debug)
+    print("Train Image Sample...")
+    debug_image = create_subplots(X_debug[0], z_debug[0], output_train[0], "train")
+    debug_image.show()
+    _, _, psnr_difference, _, _, ssim_difference = psnr_ssim_metrics(z[0], output_train[0], X[0])
+    print("Sample Train Image: PSNR Difference: " + str(psnr_difference))
+    print("Sample Train Image: SSIM Difference: " + str(ssim_difference))
 
 
 if __name__ == "__main__":
