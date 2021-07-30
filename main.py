@@ -4,7 +4,6 @@ os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 
 import cv2
-import os
 import numpy as np
 import random
 import tensorflow as tf
@@ -17,12 +16,13 @@ from keras.callbacks import ModelCheckpoint
 
 # If using the expanded 256x256 Dataset, set image_size = 256
 # If using the CIFAR Dataset, set image_size = 32
-beta = 25
+noise_val = 60
 image_size = 256
-num_epochs = 50
+num_epochs = 100
 datadir = "/home/zeshanfayyaz/LIA/Local_Images/Train/"
 testdir = "/home/zeshanfayyaz/LIA/Set12/Set12/"
-test_output = "/home/zeshanfayyaz/LIA/test/"  # Where we want to save our test images and metrics
+test_output = "/home/zeshanfayyaz/LIA/test3/"  # Where we want to save our test images and metrics
+#test_degraded = "/home/zeshanfayyaz/LIA/Degraded-Wavelet-Test-Images/"
 
 
 def main():
@@ -70,6 +70,20 @@ def main():
         testing_data = np.array(testing_data)
         return testing_data
 
+    # Uses wavelet pre-existing images for comparison
+    #def wavelet_testing_data():
+    #    degraded_testing_data = []
+    #    for img in os.listdir(test_degraded):
+    #        try:
+    #            img_array = cv2.imread(os.path.join(test_degraded, img), cv2.IMREAD_GRAYSCALE)
+    #            new_array = cv2.resize(img_array, (image_size, image_size))
+    #            degraded_testing_data.append([new_array])
+    #        except Exception:
+    #            pass
+    #    print("Degraded Testing Data Length: " + str(len(degraded_testing_data)))
+    #    degraded_testing_data = np.array(degraded_testing_data)
+    #    return degraded_testing_data
+
     # We preprocess the testing_data created above and add a stripe noise with guassian value 'beta'
     # Normalize all images
     # We return lists containing the degraded test images, and clean test images, with equal lengths of testing_data
@@ -77,7 +91,7 @@ def main():
         model_testing_data = []
         clean_testing_data = []
         for images in testing_data:
-            model_image = degrade(images[0], beta)[0]
+            model_image = degrade(images[0], noise_val)[0]
             model_testing_data.append(model_image / 255.0)
             clean_testing_data.append(images.squeeze() / 255.0)
         clean_testing_data = np.array(clean_testing_data)
@@ -203,13 +217,13 @@ def main():
         z_validation = []
 
         for images, label in training_data:
-            noisy_image, _ = degrade(images, beta)
+            noisy_image, _ = degrade(images, noise_val)
             # We append the training images to X and z
             X.append(noisy_image / 255.0)  # X is the Dirty Training Images
             z.append(images / 255.0)  # z is the Clean Training Images [Target]
 
         for images, label in validation_data:
-            noisy_image, _ = degrade(images, beta)
+            noisy_image, _ = degrade(images, noise_val)
             X_validation.append(noisy_image / 255.0)  # X_validation is the Dirty Validation Images
             z_validation.append(images / 255.0)  # z_validation is the Clean Validation Images [Target]
 
@@ -276,6 +290,7 @@ def main():
     ssim_degraded_lst = []
     ssim_predicted_lst = []
     ssim_difference_lst = []
+    clean_testing_data = np.array(testing_data.squeeze())
 
     for i in range(len(output_test)):
         psnr_degraded, psnr_predicted, psnr_difference, ssim_degraded, ssim_predicted, ssim_difference = \
@@ -337,4 +352,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
