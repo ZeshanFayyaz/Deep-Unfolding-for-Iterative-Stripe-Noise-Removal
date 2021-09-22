@@ -10,28 +10,27 @@ import tensorflow as tf
 import matplotlib.pyplot as plt
 from tensorflow import keras
 from tensorflow.keras.models import Model
-from tensorflow.keras.layers import Input, Dense, GRU, Bidirectional, TimeDistributed
+from tensorflow.keras.layers import Input, Dense, GRU, Bidirectional, TimeDistributed, Conv2D
 from skimage.metrics import peak_signal_noise_ratio, structural_similarity
 from keras.callbacks import ModelCheckpoint
 
 # If using the expanded 256x256 Dataset, set image_size = 256
 # If using the CIFAR Dataset, set image_size = 32
-noise_val = 60
+noise_val = 70
 image_size = 256
-num_epochs = 100
+num_epochs = 150
 datadir = "/home/zeshanfayyaz/LIA/Local_Images/Train/"
-testdir = "/home/zeshanfayyaz/LIA/Set12/Set12/"
-test_output = "/home/zeshanfayyaz/LIA/test3/"  # Where we want to save our test images and metrics
-#test_degraded = "/home/zeshanfayyaz/LIA/Degraded-Wavelet-Test-Images/"
+testdir = "/home/zeshanfayyaz/LIA/Local_Images/Test/"
+test_output = "/home/zeshanfayyaz/LIA/MODELS/MODEL4/8CNN/Results/"  # Where we want to save our test images and metrics
 
 
 def main():
     # Degrade Function which takes the clean image as input and returns the noisy image and the noise itself.
     # Same dimensionality, I.e. (256,256)
     def degrade(image, noise_val):
-        beta = noise_val * np.random.rand(1)
+        beta = noise_val*np.random.rand(1)
         image.astype('float32')
-        np.random.seed(0)
+
         g_col = np.random.normal(0, beta, image.shape[1])
         g_noise = np.tile(g_col, (image.shape[0], 1))
         g_noise = np.reshape(g_noise, image.shape)
@@ -42,14 +41,15 @@ def main():
     # The Training + Validation Data are all the images in the datadir directory, resized to image_size, image_size
     # We shuffle the Data
     # Pass exception in case we are unable to read an image due to corruption - ignore that image
-    def create_training_data():
+    def create_training_validation_data():
         training_validation_data = []
         for img in os.listdir(datadir):
             try:
                 img_array = cv2.imread(os.path.join(datadir, img), cv2.IMREAD_GRAYSCALE)
                 new_array = cv2.resize(img_array, (image_size, image_size))
+                new_array.astype('float32')
                 training_validation_data.append([new_array, 0])
-                random.shuffle(training_data)
+                random.shuffle(training_validation_data)
             except Exception as e:
                 pass
         return training_validation_data
@@ -63,6 +63,7 @@ def main():
             try:
                 img_array = cv2.imread(os.path.join(testdir, img), cv2.IMREAD_GRAYSCALE)
                 new_array = cv2.resize(img_array, (image_size, image_size))
+                new_array.astype('float32')
                 testing_data.append([new_array])
             except Exception:
                 pass
@@ -70,33 +71,19 @@ def main():
         testing_data = np.array(testing_data)
         return testing_data
 
-    # Uses wavelet pre-existing images for comparison
-    #def wavelet_testing_data():
-    #    degraded_testing_data = []
-    #    for img in os.listdir(test_degraded):
-    #        try:
-    #            img_array = cv2.imread(os.path.join(test_degraded, img), cv2.IMREAD_GRAYSCALE)
-    #            new_array = cv2.resize(img_array, (image_size, image_size))
-    #            degraded_testing_data.append([new_array])
-    #        except Exception:
-    #            pass
-    #    print("Degraded Testing Data Length: " + str(len(degraded_testing_data)))
-    #    degraded_testing_data = np.array(degraded_testing_data)
-    #    return degraded_testing_data
-
     # We preprocess the testing_data created above and add a stripe noise with guassian value 'beta'
     # Normalize all images
     # We return lists containing the degraded test images, and clean test images, with equal lengths of testing_data
     def degrade_test_data():
-        model_testing_data = []
+        noisy_testing_data = []
         clean_testing_data = []
         for images in testing_data:
-            model_image = degrade(images[0], noise_val)[0]
-            model_testing_data.append(model_image / 255.0)
-            clean_testing_data.append(images.squeeze() / 255.0)
+            degraded_image, _ = degrade(images[0], noise_val)
+            noisy_testing_data.append(degraded_image.astype('float32') / 255.0)
+            clean_testing_data.append(images.squeeze().astype('float32') / 255.0)
         clean_testing_data = np.array(clean_testing_data)
-        model_testing_data = np.array(model_testing_data)
-        return clean_testing_data, model_testing_data
+        noisy_testing_data = np.array(noisy_testing_data)
+        return clean_testing_data, noisy_testing_data
 
     # We have previously read all images from datadir as training + validation images, here we perform the split
     # Default value for split is 85% training and 15% validation
@@ -158,27 +145,72 @@ def main():
         inputs_t = tf.transpose(inputs, perm=[0, 2, 1])
         output_1 = (Bidirectional(GRU(image_size, return_sequences=True), merge_mode="ave"))(inputs_t)
         # The input of layer 2 is the output of layer 0 [transpose] SUBTRACT the output of layer 1
-        input_2 = tf.keras.layers.Subtract()([inputs_t, output_1])
+        
+	input_2 = tf.keras.layers.Subtract()([inputs_t, output_1])
         output_2 = (Bidirectional(GRU(image_size, return_sequences=True), merge_mode="ave"))(input_2)
-        input_3 = keras.layers.Subtract()([input_2, output_2])
+        
+	input_3 = keras.layers.Subtract()([inputs_t, output_2])
         output_3 = (Bidirectional(GRU(image_size, return_sequences=True), merge_mode="ave"))(input_3)
-        input_4 = keras.layers.Subtract()([input_3, output_3])
+        
+	input_4 = keras.layers.Subtract()([inputs_t, output_3])
         output_4 = (Bidirectional(GRU(image_size, return_sequences=True), merge_mode="ave"))(input_4)
-        input_5 = keras.layers.Subtract()([input_4, output_4])
+        
+	input_5 = keras.layers.Subtract()([inputs_t, output_4])
         output_5 = (Bidirectional(GRU(image_size, return_sequences=True), merge_mode="ave"))(input_5)
-        input_6 = keras.layers.Subtract()([input_5, output_5])
+        
+	input_6 = keras.layers.Subtract()([inputs_t, output_5])
         output_6 = Bidirectional(GRU(image_size, return_sequences=True), merge_mode="ave")(input_6)
+        
+	input_7 = keras.layers.Subtract()([inputs_t, output_6])
+        output_7 = Bidirectional(GRU(image_size, return_sequences=True), merge_mode="ave")(input_7)
+        
+	input_8 = keras.layers.Subtract()([inputs_t, output_7])
+        output_8 = Bidirectional(GRU(image_size, return_sequences=True), merge_mode="ave")(input_8)
+        
+	input_9 = keras.layers.Subtract()([inputs_t, output_8])
+        output_9 = Bidirectional(GRU(image_size, return_sequences=True), merge_mode="ave")(input_9)
+        
+	input_10 = keras.layers.Subtract()([inputs_t, output_9])
+        output_10 = Bidirectional(GRU(image_size, return_sequences=True), merge_mode="ave")(input_10)
+        
+	input_11 = keras.layers.Subtract()([inputs_t, output_10])
+        output_11 = Bidirectional(GRU(image_size, return_sequences=True), merge_mode="ave")(input_11)
+        
+	input_12 = keras.layers.Subtract()([inputs_t, output_11])
+        output_12 = Bidirectional(GRU(image_size, return_sequences=True), merge_mode="ave")(input_12)
+        
+	input_13 = keras.layers.Subtract()([inputs_t, output_12])
+        output_13 = Bidirectional(GRU(image_size, return_sequences=True), merge_mode="ave")(input_13)
+
         # Perform TimeDistributed Operation to final output of GRU
-        output_GRU = TimeDistributed(Dense(image_size))(output_6)
+        output_GRU = TimeDistributed(Dense(image_size))(output_13)
         # Transpose the image once again, giving us original dimensionality
         output_GRU = tf.transpose(output_GRU, perm=[0, 2, 1])
         # We aim for the real_output to be as close as possible to 'z' -> the Clean Image
         # The clean image is the dirty image [Input] SUBTRACT the noise [Output of the Network (output_GRU)]
-        real_output = tf.keras.layers.Subtract()([inputs, output_GRU])
+
+        gru_output = tf.keras.layers.Subtract()([inputs, output_GRU])
+        # conv1_input = tf.expand_dims(gru_output, -1)
+        # cnn 5x5 kernel. relu activation
+        conv1 = Conv2D(32, kernel_size=5, activation='relu', padding='same', strides=1)(gru_output)
+        conv2 = Conv2D(32, kernel_size=3, activation='relu', padding='same', strides=1)(conv1)
+        conv3 = Conv2D(32, kernel_size=3, activation='relu', padding='same', strides=1)(conv2)
+        conv4 = Conv2D(32, kernel_size=3, activation='relu', padding='same', strides=1)(conv3)
+        conv5 = Conv2D(32, kernel_size=3, activation='relu', padding='same', strides=1)(conv4)
+        conv6 = Conv2D(32, kernel_size=3, activation='relu', padding='same', strides=1)(conv5)
+        conv7 = Conv2D(32, kernel_size=3, activation='relu', padding='same', strides=1)(conv6)
+        conv8 = Conv2D(1, kernel_size=3, activation='relu', padding='same', strides=1)(conv7)
+        # cnn 3x3
+        # cnn 3x3.
+        # subtract inputs, output of cnn => final output
+        # cnn_output = tf.squeeze(conv8, [3])
+        cnn_output = conv8
+        real_output = tf.keras.layers.Subtract()([gru_output, cnn_output])
+
         model = Model(inputs=inputs, outputs=real_output)
         model.summary()
         print("Model Compiled")
-        opt = tf.keras.optimizers.Adam(lr=1e-3, decay=1e-5)
+        opt = tf.keras.optimizers.Adam(learning_rate=1e-3, decay=1e-5)
         model.compile(
             optimizer=opt,
             loss='mean_squared_error',
@@ -188,8 +220,9 @@ def main():
 
     # We separate the datadir images into Training Data and Validation Data
     print("Creating Training and Validation Data...")
-    training_validation_data = create_training_data()
+    training_validation_data = create_training_validation_data()
     training_data, validation_data = training_validation_split(training_validation_data)
+    #training_data, validation_data = training_validation_split(training_validation_data)
 
     # We can perform the same operation on Testing Data
     print("Creating Testing Data...")
@@ -198,9 +231,9 @@ def main():
 
     # Degrade testing data
     print("Degrading Testing Data...")
-    clean_testing_data, model_testing_data = degrade_test_data()
+    clean_testing_data, noisy_testing_data = degrade_test_data()
 
-    filepath = "/home/zeshanfayyaz/LIA/model_checkpoint.h5"
+    filepath = "/home/zeshanfayyaz/LIA/MODELS/CNN_TYPES/MODEL4C3/7CNN/model_checkpoint.h5"
     checkpoint = ModelCheckpoint(filepath, monitor='loss', verbose=1, save_best_only=True, mode='min')
     callback_list = [checkpoint]
 
@@ -219,8 +252,8 @@ def main():
         for images, label in training_data:
             noisy_image, _ = degrade(images, noise_val)
             # We append the training images to X and z
-            X.append(noisy_image / 255.0)  # X is the Dirty Training Images
-            z.append(images / 255.0)  # z is the Clean Training Images [Target]
+            X.append(noisy_image.astype('float32') / 255.0)  # X is the Dirty Training Images
+            z.append(images.astype('float32') / 255.0)  # z is the Clean Training Images [Target]
 
         for images, label in validation_data:
             noisy_image, _ = degrade(images, noise_val)
@@ -240,7 +273,7 @@ def main():
 
         # Calculate loss
         loss_metrics = model.fit(X, z,
-                                 batch_size=100,
+                                 batch_size=50,
                                  epochs=1,
                                  validation_data=(X_validation, z_validation),
                                  callbacks=callback_list
@@ -250,19 +283,22 @@ def main():
         loss_val.append(loss_metrics.history['val_loss'])
         print("Done Epoch: " + str(i + 1))
 
-    model.save("/home/zeshanfayyaz/LIA/stripe_noise_model.h5")
+    model.save("/home/zeshanfayyaz/LIA/MODELS/CNN_TYPES/MODEL4C3/7CNN/stripe_noise_model.h5")
 
     # Once training is complete, plot the Training Loss
     plt.plot(loss_train)
     plt.title("Training Loss")
     plt.grid()
+    plt.savefig(test_output + "TrainingLoss.pdf")
     plt.show()
 
     # Once training is complete, plot the Validation Loss
     plt.plot(loss_val)
     plt.title("Validation Loss")
     plt.grid()
+    plt.savefig(test_output + "ValidationLoss.pdf")
     plt.show()
+
 
     # Once training is complete, plot the Training and Validation Loss on the same axis
     # Define range of x axis
@@ -275,10 +311,11 @@ def main():
     plt.title("Training Loss and Validation Loss")
     plt.legend(loc='center right')
     plt.grid()
+    plt.savefig(test_output + "TrainingValidationLoss.pdf")
     plt.show()
 
     # Predict clean images using our degraded test images
-    output_test = model.predict(model_testing_data)
+    output_test = model.predict(noisy_testing_data)
 
     # Next, over all outputs of the test we wish to calculate the average of the PSNR and SSIM metrics
     # We append the respective PSNR and SSIM values to their lists, and calculate the average of each list
@@ -290,11 +327,10 @@ def main():
     ssim_degraded_lst = []
     ssim_predicted_lst = []
     ssim_difference_lst = []
-    clean_testing_data = np.array(testing_data.squeeze())
 
     for i in range(len(output_test)):
         psnr_degraded, psnr_predicted, psnr_difference, ssim_degraded, ssim_predicted, ssim_difference = \
-            psnr_ssim_metrics(clean_testing_data[i], output_test[i], model_testing_data[i])
+            psnr_ssim_metrics(clean_testing_data[i], output_test[i], noisy_testing_data[i])
         psnr_degraded_lst.append(psnr_degraded)
         psnr_predicted_lst.append(psnr_predicted)
         psnr_difference_lst.append(psnr_difference)
@@ -318,17 +354,17 @@ def main():
 
     # We print an example image of output_test so we can visually inspect any loss of stripe noise
     print("Test Image Sample...")
-    test_image = create_subplots(model_testing_data[0], clean_testing_data[0], output_test[0], "test")
+    test_image = create_subplots(noisy_testing_data[0], clean_testing_data[0], output_test[0], "test")
     test_image.show()
 
     # Save 15 sample test images (subplots of ground truth, degraded, and predicted) and corresponding metrics
     # These files are saved in test_output
-    for i in range(len(model_testing_data)):
-        test_image = create_subplots(model_testing_data[i], clean_testing_data[i], output_test[i], "test")
-        test_image.savefig(test_output + str(i) + ".png")
+    for i in range(15):
+        test_image = create_subplots(noisy_testing_data[i], clean_testing_data[i], output_test[i], "test")
+        test_image.savefig(test_output + str(i) + ".pdf")
 
         psnr_degraded, psnr_predicted, psnr_difference, ssim_degraded, ssim_predicted, ssim_difference = \
-            psnr_ssim_metrics(clean_testing_data[i], output_test[i], model_testing_data[i])
+            psnr_ssim_metrics(clean_testing_data[i], output_test[i], noisy_testing_data[i])
 
         file = open(test_output + str(i) + "_metrics.txt", "w")
         file.write("PSNR of Degraded Image wrt Ground Truth: " + str(psnr_degraded)
@@ -344,10 +380,18 @@ def main():
     output_train = model.predict(X_debug)
     print("Train Image Sample...")
     debug_image = create_subplots(X_debug[0], z_debug[0], output_train[0], "train")
+
     debug_image.show()
     _, _, psnr_difference, _, _, ssim_difference = psnr_ssim_metrics(z[0], output_train[0], X[0])
     print("Sample Train Image: PSNR Difference: " + str(psnr_difference))
     print("Sample Train Image: SSIM Difference: " + str(ssim_difference))
+
+    print(clean_testing_data[0].dtype)
+    print(output_test[0].dtype)
+    print(noisy_testing_data[0].dtype)
+    print(z[0].dtype)
+    print(output_train[0].dtype)
+    print(X[0].dtype)
 
 
 if __name__ == "__main__":
