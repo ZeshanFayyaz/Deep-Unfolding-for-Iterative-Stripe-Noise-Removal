@@ -14,7 +14,7 @@ Keras 2.4.3
 
 ### DIRECTORY ORGANIZATION 
 
-1. Please download the Linnaeus 5 and BSDS images from ```./Datasets/Train/BSDS500/``` and ```./Datasets/Train/dataset.``` Combine all training images and place into 'CombinedTrain' directory. 
+1. Please download the Linnaeus 5 and BSDS images from ```./Datasets/Train/BSDS500/``` and ```./Datasets/Train/dataset```. Combine all training images and place into 'CombinedTrain' directory. 
 
 2. Please download the testing folders found in ./Datasets/Test/ 
 
