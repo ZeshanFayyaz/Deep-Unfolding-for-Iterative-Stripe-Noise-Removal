@@ -1,0 +1,5 @@
+Download the 256X256 Linnaues 5 dataset from: http://chaladze.com/l5/
+
+Download the BSDS500 dataset from Stripenoise/Datasets/Train/BSDS500/
+
+Combine the contents of all 'train' folders [berry, bird, dog, flower, other, BSDS500] into one main 'Train" folder. 
