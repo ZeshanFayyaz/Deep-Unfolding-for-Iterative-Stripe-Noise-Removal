@@ -5,7 +5,9 @@
 ### INSTALLATION
 
 Python 3.8.10
+
 Tensorflow 2.5.0
+
 Keras 2.4.3 
 
 ### DIRECTORY ORGANIZATION 
@@ -17,13 +19,21 @@ Keras 2.4.3
 Folder architecture should be as follows: 
 
 ./Datasets/
+
 ./Datasets/Train/
+
 ./Datasets/Train/CombinedTrain/
+
 ./Datasets/Test/
+
 ./Datasets/Test/BSDS100/
+
 ./Datasets/Test/INFRARED100/
+
 ./Datasets/Test/Linnaeus5/
+
 ./Datasets/Test/Set12/
+
 ./Datasets/Test/Urban100/
 
 ### TEST MODEL ON PRETRAINED WEIGHTS
