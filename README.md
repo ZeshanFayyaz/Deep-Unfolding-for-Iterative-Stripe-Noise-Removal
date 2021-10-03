@@ -21,21 +21,13 @@ Keras 2.4.3
 Folder architecture should be as follows: 
 ```
 ./Datasets/
-
 ./Datasets/Train/
-
 ./Datasets/Train/CombinedTrain/
-
 ./Datasets/Test/
-
 ./Datasets/Test/BSDS100/
-
 ./Datasets/Test/INFRARED100/
-
 ./Datasets/Test/Linnaeus5/
-
 ./Datasets/Test/Set12/
-
 ./Datasets/Test/Urban100/
 ```
 
