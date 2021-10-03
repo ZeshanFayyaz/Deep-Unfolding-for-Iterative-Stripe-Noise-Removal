@@ -6,13 +6,13 @@
 
 ### INSTALLATION
 
-'''
+```
 Python 3.8.10
 
 Tensorflow 2.5.0
 
 Keras 2.4.3 
-'''
+```
 
 ### DIRECTORY ORGANIZATION 
 
@@ -21,7 +21,7 @@ Keras 2.4.3
 2. Please download the testing folders found in ./Datasets/Test/ 
 
 Folder architecture should be as follows: 
-
+```
 ./Datasets/
 
 ./Datasets/Train/
@@ -39,6 +39,7 @@ Folder architecture should be as follows:
 ./Datasets/Test/Set12/
 
 ./Datasets/Test/Urban100/
+```
 
 ### TEST MODEL ON PRETRAINED WEIGHTS
 
