@@ -1,3 +1,0 @@
-Download the 256X256 Linnaues 5 dataset from: http://chaladze.com/l5/
-
-Combine the contents of all 'test' folders [berry, bird, dog, flower, other] into one main 'Linnaeus_5_Test" folder. 
