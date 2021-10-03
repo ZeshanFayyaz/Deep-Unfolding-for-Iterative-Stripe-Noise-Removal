@@ -6,11 +6,13 @@
 
 ### INSTALLATION
 
+'''
 Python 3.8.10
 
 Tensorflow 2.5.0
 
 Keras 2.4.3 
+'''
 
 ### DIRECTORY ORGANIZATION 
 
