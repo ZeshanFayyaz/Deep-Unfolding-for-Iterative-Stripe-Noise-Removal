@@ -35,7 +35,7 @@ Folder architecture should be as follows:
 
 Download our pretrained model found from ```./pretrained_model/destriping```
 
-Download evaluate.py
+Download ```evaluate.py```
 
 Edit ```Line 37``` to reflect the directory which contains ```model_checkpoint.h5```
 
