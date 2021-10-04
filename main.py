@@ -202,9 +202,9 @@ def main():
 
         conv1_input = tf.expand_dims(gru_output, -1)
         # cnn 5x5 kernel. relu activation
-        conv1 = Conv2D(1, kernel_size=5, activation='relu', padding='same', strides=1)(conv1_input)
+        conv1 = Conv2D(32, kernel_size=5, activation='relu', padding='same', strides=1)(conv1_input)
         conv2 = Conv2D(32, kernel_size=3, activation='relu', padding='same', strides=1)(conv1)
-        conv3 = Conv2D(32, kernel_size=3, activation='relu', padding='same', strides=1)(conv2)
+        conv3 = Conv2D(1, kernel_size=3, activation='relu', padding='same', strides=1)(conv2)
 
         # subtract inputs, output of cnn => final output
         cnn_output = tf.squeeze(conv3, [3])
