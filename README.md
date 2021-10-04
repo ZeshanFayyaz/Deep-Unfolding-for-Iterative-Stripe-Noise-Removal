@@ -56,6 +56,9 @@ Edit ```Line 24``` to the directory ```[./15GRU3CNN/Results/]``` where we wish t
 
 Edit ```Line 239 and 289``` to ```./15GRU3CNN/trained_model_weights/``` where we save ```model_checkpoint.h5``` and ```stripe_noise_model.h5``` 
 
+An example of a saved .pdf image containing predicted images is as follows: 
+
+![results](results_test.PNG)
 
 
 
