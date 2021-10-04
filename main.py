@@ -21,11 +21,11 @@ image_size = 256
 num_epochs = 100
 datadir = "/home/zeshanfayyaz/LIA/Local_Images/Train/"
 testdir = "/home/zeshanfayyaz/LIA/Local_Images/Test/"
-test_output = "/home/zeshanfayyaz/LIA/NoiseRemoval/BETA/15GRU1CNN/Results/"  # Where we want to save our test images and metrics
+test_output = "/home/zeshanfayyaz/LIA/NoiseRemoval/BETA/15GRU3CNN/Results/"  # Where we want to save our test images and metrics
 
 
 def main():
-    print("BETA: 15GRU1CNN")
+    print("BETA: 15GRU3CNN")
     # Degrade Function which takes the clean image as input and returns the noisy image and the noise itself.
     # Same dimensionality, I.e. (256,256)
     def degrade(image, noise_val):
@@ -138,7 +138,7 @@ def main():
         ssim_difference = ssim_predicted - ssim_degraded
         return psnr_degraded, psnr_predicted, psnr_difference, ssim_degraded, ssim_predicted, ssim_difference
 
-    # MODEL 3
+    # MODEL 
     # Transpose the input shape replacing rows with columns and columns with rows
     # Return sequences is TRUE as we want an output for every timestep, and not a "many-to-one" output
     # Merge_mode is set to AVERAGE - in order to maintain dimensionality (256,256) [default is CONCAT]
@@ -203,18 +203,11 @@ def main():
         conv1_input = tf.expand_dims(gru_output, -1)
         # cnn 5x5 kernel. relu activation
         conv1 = Conv2D(1, kernel_size=5, activation='relu', padding='same', strides=1)(conv1_input)
-        #conv2 = Conv2D(32, kernel_size=3, activation='relu', padding='same', strides=1)(conv1)
-        #conv3 = Conv2D(32, kernel_size=3, activation='relu', padding='same', strides=1)(conv2)
-        #conv4 = Conv2D(32, kernel_size=3, activation='relu', padding='same', strides=1)(conv3)
-        #conv5 = Conv2D(32, kernel_size=3, activation='relu', padding='same', strides=1)(conv4)
-        #conv6 = Conv2D(32, kernel_size=3, activation='relu', padding='same', strides=1)(conv5)
-        #conv7 = Conv2D(32, kernel_size=3, activation='relu', padding='same', strides=1)(conv6)
-        #conv8 = Conv2D(1, kernel_size=3, activation='relu', padding='same', strides=1)(conv7)
-        # cnn 3x3
-        # cnn 3x3.
+        conv2 = Conv2D(32, kernel_size=3, activation='relu', padding='same', strides=1)(conv1)
+        conv3 = Conv2D(32, kernel_size=3, activation='relu', padding='same', strides=1)(conv2)
+
         # subtract inputs, output of cnn => final output
-        cnn_output = tf.squeeze(conv1, [3])
-        # cnn_output = conv8
+        cnn_output = tf.squeeze(conv3, [3])
         real_output = tf.keras.layers.Subtract()([gru_output, cnn_output])
 
         model = Model(inputs=inputs, outputs=real_output)
@@ -243,7 +236,7 @@ def main():
     print("Degrading Testing Data...")
     clean_testing_data, noisy_testing_data = degrade_test_data()
 
-    filepath = "/home/zeshanfayyaz/LIA/NoiseRemoval/BETA/15GRU1CNN/model_checkpoint.h5"
+    filepath = "/home/zeshanfayyaz/LIA/NoiseRemoval/BETA/15GRU3CNN/model_checkpoint.h5"
     checkpoint = ModelCheckpoint(filepath, monitor='loss', verbose=1, save_best_only=True, mode='min')
     callback_list = [checkpoint]
 
@@ -293,7 +286,7 @@ def main():
         loss_val.append(loss_metrics.history['val_loss'])
         print("Done Epoch: " + str(i + 1))
 
-    model.save("/home/zeshanfayyaz/LIA/NoiseRemoval/BETA/15GRU1CNN/stripe_noise_model.h5")
+    model.save("/home/zeshanfayyaz/LIA/NoiseRemoval/BETA/15GRU3CNN/stripe_noise_model.h5")
 
     # Once training is complete, plot the Training Loss
     plt.plot(loss_train)
