@@ -1,7 +1,7 @@
 import os
 
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
-os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 
 import cv2
 import numpy as np
@@ -21,11 +21,11 @@ image_size = 256
 num_epochs = 100
 datadir = "/home/zeshanfayyaz/LIA/Local_Images/Train/"
 testdir = "/home/zeshanfayyaz/LIA/Local_Images/Test/"
-test_output = "/home/zeshanfayyaz/LIA/NoiseRemoval/BETA/15GRU3CNN/Results/"  # Where we want to save our test images and metrics
+test_output = "/home/zeshanfayyaz/LIA/NoiseRemoval/BETA/15GRU/Results/"  # Where we want to save our test images and metrics
 
 
 def main():
-    print("BETA: 15GRU3CNN")
+    print("BETA: 12GRU")
     # Degrade Function which takes the clean image as input and returns the noisy image and the noise itself.
     # Same dimensionality, I.e. (256,256)
     def degrade(image, noise_val):
@@ -138,7 +138,7 @@ def main():
         ssim_difference = ssim_predicted - ssim_degraded
         return psnr_degraded, psnr_predicted, psnr_difference, ssim_degraded, ssim_predicted, ssim_difference
 
-    # MODEL 
+    # MODEL 4: 15 BiGRU
     # Transpose the input shape replacing rows with columns and columns with rows
     # Return sequences is TRUE as we want an output for every timestep, and not a "many-to-one" output
     # Merge_mode is set to AVERAGE - in order to maintain dimensionality (256,256) [default is CONCAT]
@@ -162,53 +162,43 @@ def main():
         
         input_6 = keras.layers.Subtract()([inputs_t, output_5])
         output_6 = Bidirectional(GRU(image_size, return_sequences=True), merge_mode="ave")(input_6)
-        
+
         input_7 = keras.layers.Subtract()([inputs_t, output_6])
         output_7 = Bidirectional(GRU(image_size, return_sequences=True), merge_mode="ave")(input_7)
-        
+
         input_8 = keras.layers.Subtract()([inputs_t, output_7])
         output_8 = Bidirectional(GRU(image_size, return_sequences=True), merge_mode="ave")(input_8)
-        
+
         input_9 = keras.layers.Subtract()([inputs_t, output_8])
         output_9 = Bidirectional(GRU(image_size, return_sequences=True), merge_mode="ave")(input_9)
         
         input_10 = keras.layers.Subtract()([inputs_t, output_9])
-        output_10 = Bidirectional(GRU(image_size, return_sequences=True), merge_mode="ave")(input_10)
+        output_10 = (Bidirectional(GRU(image_size, return_sequences=True), merge_mode="ave"))(input_10)
         
         input_11 = keras.layers.Subtract()([inputs_t, output_10])
         output_11 = Bidirectional(GRU(image_size, return_sequences=True), merge_mode="ave")(input_11)
-        
+
         input_12 = keras.layers.Subtract()([inputs_t, output_11])
         output_12 = Bidirectional(GRU(image_size, return_sequences=True), merge_mode="ave")(input_12)
+	
+	input_13 = keras.layers.Subtract()([inputs_t, output_12])
+        output_13 = (Bidirectional(GRU(image_size, return_sequences=True), merge_mode="ave"))(input_13)
         
-        input_13 = keras.layers.Subtract()([inputs_t, output_12])
-        output_13 = Bidirectional(GRU(image_size, return_sequences=True), merge_mode="ave")(input_13)
-
         input_14 = keras.layers.Subtract()([inputs_t, output_13])
         output_14 = Bidirectional(GRU(image_size, return_sequences=True), merge_mode="ave")(input_14)
 
         input_15 = keras.layers.Subtract()([inputs_t, output_14])
         output_15 = Bidirectional(GRU(image_size, return_sequences=True), merge_mode="ave")(input_15)
 
-        # Perform TimeDistributed Operation to final output of GRU
+        # Perform TimeDistributed Operation to final output of GRU        
         output_GRU = TimeDistributed(Dense(image_size))(output_15)
 
         # Transpose the image once again, giving us original dimensionality
         output_GRU = tf.transpose(output_GRU, perm=[0, 2, 1])
-        
-	# We aim for the real_output to be as close as possible to 'z' -> the Clean Image
+
+        # We aim for the real_output to be as close as possible to 'z' -> the Clean Image
         # The clean image is the dirty image [Input] SUBTRACT the noise [Output of the Network (output_GRU)]
-        gru_output = tf.keras.layers.Subtract()([inputs, output_GRU])
-
-        conv1_input = tf.expand_dims(gru_output, -1)
-        # cnn 5x5 kernel. relu activation
-        conv1 = Conv2D(32, kernel_size=5, activation='relu', padding='same', strides=1)(conv1_input)
-        conv2 = Conv2D(32, kernel_size=3, activation='relu', padding='same', strides=1)(conv1)
-        conv3 = Conv2D(1, kernel_size=3, activation='relu', padding='same', strides=1)(conv2)
-
-        # subtract inputs, output of cnn => final output
-        cnn_output = tf.squeeze(conv3, [3])
-        real_output = tf.keras.layers.Subtract()([gru_output, cnn_output])
+        real_output = tf.keras.layers.Subtract()([inputs, output_GRU])
 
         model = Model(inputs=inputs, outputs=real_output)
         model.summary()
@@ -236,7 +226,7 @@ def main():
     print("Degrading Testing Data...")
     clean_testing_data, noisy_testing_data = degrade_test_data()
 
-    filepath = "/home/zeshanfayyaz/LIA/NoiseRemoval/BETA/15GRU3CNN/model_checkpoint.h5"
+    filepath = "/home/zeshanfayyaz/LIA/NoiseRemoval/BETA/15GRU/model_checkpoint.h5"
     checkpoint = ModelCheckpoint(filepath, monitor='loss', verbose=1, save_best_only=True, mode='min')
     callback_list = [checkpoint]
 
@@ -286,7 +276,7 @@ def main():
         loss_val.append(loss_metrics.history['val_loss'])
         print("Done Epoch: " + str(i + 1))
 
-    model.save("/home/zeshanfayyaz/LIA/NoiseRemoval/BETA/15GRU3CNN/stripe_noise_model.h5")
+    model.save("/home/zeshanfayyaz/LIA/NoiseRemoval/BETA/15GRU/stripe_noise_model.h5")
 
     # Once training is complete, plot the Training Loss
     plt.plot(loss_train)
