@@ -31,7 +31,7 @@ Folder architecture should be as follows:
 ./Datasets/Test/Urban100/
 ```
 
-### TEST MODEL ON PRETRAINED WEIGHTS
+### EVALUATE MODEL ON PRETRAINED WEIGHTS
 
 Download our pretrained model found from ```./pretrained_models/destriping```
 
@@ -43,7 +43,7 @@ Download our pretrained model found from ```./pretrained_models/destriping```
 
 
 
-### EVALUATE METRICS
+
 
 
 
