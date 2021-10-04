@@ -46,3 +46,6 @@ Download our pretrained model found from ```./pretrained_models/destriping```
 ### EVALUATE METRICS
 
 
+
+### ABLATION STUDY
+![alt text](https://imgur.com/a/CAffKim)
