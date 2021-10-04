@@ -37,9 +37,9 @@ Download our pretrained model found from ```./pretrained_model/destriping```
 
 Download evaluate.py
 
-Edit Line ```37``` to reflect the directory which contains ```model_checkpoint.h5```
+Edit ```Line 37``` to reflect the directory which contains ```model_checkpoint.h5```
 
-Edit Line ```23, 26, 29, 32, AND 35``` to reflect the directories which contains the 5 test datasets ```[BSDS100, INFRARED100, Set12, Linnaeus5, Urban100]```
+Edit ```Line 23, 26, 29, 32, and 35``` to reflect the directories which contains the 5 test datasets ```[BSDS100, INFRARED100, Set12, Linnaeus5, Urban100]```
 
 Uncomment the TESTDIR you wish to evaluate on. Script returns degraded and predicted PSNR and SSIM values. 
 
