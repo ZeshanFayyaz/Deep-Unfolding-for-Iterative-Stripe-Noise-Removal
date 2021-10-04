@@ -54,7 +54,7 @@ Edit ```Line 22 and 23``` to reflect training dataset and test dataset.
 
 Edit ```Line 24``` to the directory ```[./15GRU3CNN/Results/]``` where we wish to save: 10 pdf images containing degraded and testing images, and 10 corresponding .txt files containing PSNR and SSIM metrics, TrainingLoss.pdf, TrainingValidationLoss.pdf, and ValidationLoss.pdf 
 
-Edit ```Line 239 and 289``` to ```./15GRU3CNN/trained_model_weights/``` where we save ```model_checkpoint.h5 and stripe_noise_model.h5``` 
+Edit ```Line 239 and 289``` to ```./15GRU3CNN/trained_model_weights/``` where we save ```model_checkpoint.h5``` and ```stripe_noise_model.h5``` 
 
 
 
