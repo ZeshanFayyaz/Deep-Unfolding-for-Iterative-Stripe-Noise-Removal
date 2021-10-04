@@ -1,6 +1,0 @@
-PSNR of Degraded Image wrt Ground Truth: 31.99497606654901 
-PSNR of Predicted Image wrt Ground Truth: 52.43149731768714 
-PSNR Difference: 20.436521251138128 
-SSIM of  Degraded Image wrt Ground Truth: 0.9332760404451521 
-SSIM of Predicted Image wrt Ground Truth: 0.9996006150382706 
-SSIM Difference: 0.06632457459311847

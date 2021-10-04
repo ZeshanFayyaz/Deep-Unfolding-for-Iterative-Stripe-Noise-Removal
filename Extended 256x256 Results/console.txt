@@ -1,9 +1,0 @@
-The average PSNR of all Test Degraded Images wrt Ground Truth: 31.99326451651255
-The average PSNR of all Test Predicted Images wrt Ground Truth: 52.13414612448449
-The average PSNR Difference: 20.14088160797101
-The average SSIM of all Test Degraded Images wrt Ground Truth: 0.9304334954162248
-The average SSIM of all Test Predicted Images wrt Ground Truth: 0.9990965907868614
-The average SSIM Difference: 0.06866309537063912
-
-Sample Train Image: PSNR Difference: 14.77345531434278
-Sample Train Image: SSIM Difference: 0.06101682018426502
