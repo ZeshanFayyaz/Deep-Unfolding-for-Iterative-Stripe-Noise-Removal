@@ -46,7 +46,7 @@ Edit ```Line 23, 26, 29, 32, and 35``` to reflect the directories which contains
 Uncomment the ```TESTDIR``` you wish to evaluate on. Script returns degraded and predicted PSNR and SSIM values. 
 
 
-### TRAIN MODEL
+### TRAINING THE MODEL
 
 Download ```main.py```
 
