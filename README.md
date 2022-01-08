@@ -35,11 +35,11 @@ Folder architecture should be as follows:
 
 ### EVALUATE MODEL ON PRETRAINED WEIGHTS
 
-Download our pretrained model found from ```./pretrained_model/destriping```
+Download our pretrained model found from ```./pretrained_model/destriping_model/```
 
 Download ```evaluate.py```
 
-Edit ```Line 37``` to reflect the directory which contains ```model_checkpoint.h5```
+Edit ```Line 37``` to reflect the directory which contains ```destriping_model.h5```
 
 Edit ```Line 23, 26, 29, 32, and 35``` to reflect the directories which contains the 5 test datasets ```[BSDS100, INFRARED100, Set12, Linnaeus5, Urban100]```
 
