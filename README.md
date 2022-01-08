@@ -63,6 +63,9 @@ An example of a saved .pdf image containing predicted images is as follows:
 ![results](results_test.PNG)
 
 
+### ABLATION STUDY 
+
+![expanded_ablation.JPG](expanded_ablation.JPG)
 
 
 
