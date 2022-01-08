@@ -34,7 +34,7 @@ import PIL.Image as Image
 #Urban100 Dataset
 #TESTDIR ="/home/zeshanfayyaz/LIA/STRIPE_DATASETS/Urban100/"
 
-MODEL = "/home/zeshanfayyaz/LIA/NoiseRemoval/BETA/15GRU/model_checkpoint.h5"
+MODEL = "/home/zeshanfayyaz/LIA/NoiseRemoval/BETA/15GRU/destriping_model.h5"
 saved_model = load_model(MODEL)
 saved_model.summary()
 
